@@ -343,6 +343,8 @@ function createChildReconciler(
     return existingChildren;
   }
 
+  // 注释 --Jack
+  // 将新元素的props赋值给当前的fiber节点
   function useFiber(fiber: Fiber, pendingProps: mixed): Fiber {
     // We currently set sibling to null and index to 0 here because it is easy
     // to forget to do before returning it. E.g. for the single child case.
@@ -838,6 +840,7 @@ function createChildReconciler(
     newChildren: Array<any>,
     lanes: Lanes,
   ): Fiber | null {
+    
     // This algorithm can't optimize by searching from both ends since we
     // don't have backpointers on fibers. I'm trying to see how far we can get
     // with that model. If it ends up not being worth the tradeoffs, we can
@@ -857,6 +860,10 @@ function createChildReconciler(
     // If you change this code, also update reconcileChildrenIterator() which
     // uses the same algorithm.
 
+    // 注释 --Jack
+    // 总共包含两层遍历
+
+
     if (__DEV__) {
       // First, validate keys.
       let knownKeys: Set<string> | null = null;
@@ -873,13 +880,21 @@ function createChildReconciler(
     let lastPlacedIndex = 0;
     let newIdx = 0;
     let nextOldFiber = null;
+
+    // 注释 --Jack
+    // 第一层遍历
     for (; oldFiber !== null && newIdx < newChildren.length; newIdx++) {
       if (oldFiber.index > newIdx) {
+        // 注释 --Jack
+        // newChildren先遍历完毕，oldFiber还有剩余，说明oldFiber需要删除
         nextOldFiber = oldFiber;
         oldFiber = null;
       } else {
         nextOldFiber = oldFiber.sibling;
       }
+      
+      // 注释 --Jack
+      // 对比：如果key相同，更新fiber；如果key不同，返回null,遍历结束
       const newFiber = updateSlot(
         returnFiber,
         oldFiber,
@@ -897,6 +912,9 @@ function createChildReconciler(
         break;
       }
       if (shouldTrackSideEffects) {
+        
+        // 注释 --Jack
+        // key相同，但是类型不同时，需要将oldFiber标记为删除，继续遍历
         if (oldFiber && newFiber.alternate === null) {
           // We matched the slot, but we didn't reuse the existing fiber, so we
           // need to delete the existing child.
@@ -918,6 +936,8 @@ function createChildReconciler(
       oldFiber = nextOldFiber;
     }
 
+    // --Jack comment
+    // 新列表新结束
     if (newIdx === newChildren.length) {
       // We've reached the end of the new children. We can delete the rest.
       deleteRemainingChildren(returnFiber, oldFiber);
@@ -928,6 +948,8 @@ function createChildReconciler(
       return resultingFirstChild;
     }
 
+    // --Jack comment
+    // 旧列表先结束
     if (oldFiber === null) {
       // If we don't have any more existing children we can choose a fast path
       // since the rest will all be insertions.
@@ -952,6 +974,9 @@ function createChildReconciler(
       return resultingFirstChild;
     }
 
+    // --Jack--
+    // 第二层遍历
+    // 旧节点构建一个map，key为key或者index，value为fiber
     // Add all children to a key map for quick lookups.
     const existingChildren = mapRemainingChildren(returnFiber, oldFiber);
 
