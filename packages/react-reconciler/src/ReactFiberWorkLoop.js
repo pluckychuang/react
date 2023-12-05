@@ -2296,6 +2296,10 @@ function renderRootConcurrent(root: FiberRoot, lanes: Lanes) {
 }
 
 /** @noinline */
+// --Jack comment
+// fiber 任务执行的入口
+// 通过shouldYield确定是否需要让出时间片
+// rootScheduler.js 的调度器最终会调用这个函数
 function workLoopConcurrent() {
   // Perform work until Scheduler asks us to yield
   while (workInProgress !== null && !shouldYield()) {
@@ -2317,6 +2321,10 @@ function performUnitOfWork(unitOfWork: Fiber): void {
     next = beginWork(current, unitOfWork, entangledRenderLanes);
     stopProfilerTimerIfRunningAndRecordDelta(unitOfWork, true);
   } else {
+    // --Jack comment
+    // 从这里开始执行任务
+    // 调用reconcile 执行diff算法
+    // 并返回下一个要执行的fiber节点
     next = beginWork(current, unitOfWork, entangledRenderLanes);
   }
 
@@ -2326,6 +2334,9 @@ function performUnitOfWork(unitOfWork: Fiber): void {
     // If this doesn't spawn new work, complete the current work.
     completeUnitOfWork(unitOfWork);
   } else {
+    // --Jack comment
+    // 保存状态
+    // 如果任务终止，那么就会从这里开始重新执行
     workInProgress = next;
   }
 
